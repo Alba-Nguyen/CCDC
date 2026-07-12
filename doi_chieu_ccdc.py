@@ -7,7 +7,7 @@ from collections import defaultdict
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ENTITY = "AS"
-DATA_DIR = os.path.join(BASE_DIR, "CCDC 1", ENTITY)
+DATA_DIR = BASE_DIR
 
 NUM = '#,##0'
 THIN = Side(style='thin')
