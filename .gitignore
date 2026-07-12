@@ -1,0 +1,5 @@
+z_DoiChieu_CCDC_*.xlsx
+__pycache__/
+_temp.db
+temp_doichieu.db
+*.pyc
