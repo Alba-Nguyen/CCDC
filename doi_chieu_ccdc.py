@@ -406,6 +406,7 @@ def _process_month(month_code, ws, bcdps_data, TMP):
     for tk in ('2421','2422'):
         print(f"  [{month_code}] {tk}: lech={close_data[tk]['lech']:>12,.0f} = BCDPS={close_data[tk]['bcdps']:>12,.0f} - CCDC={close_data[tk]['ccdc']:>12,.0f} - CP={close_data[tk]['cp']:>12,.0f}")
     conn.close()
+    return nf, close_data, am
 
 
 def main():
@@ -435,10 +436,58 @@ def main():
     wb_out.remove(wb_out.active)
     months = [("T1","Thang 1"),("T2","Thang 2"),("T3","Thang 3"),
               ("T4","Thang 4"),("T5","Thang 5"),("T6","Thang 6")]
+    all_nf = {}; all_close = {}
     for mc, ml in months:
         print(f"\n  === Processing {ml} ===")
         ws = wb_out.create_sheet(ml)
-        _process_month(mc, ws, bcdps_data, TMP)
+        nf, close_data, _ = _process_month(mc, ws, bcdps_data, TMP)
+        all_nf[mc] = nf; all_close[mc] = close_data
+    # ── Summary sheet ──
+    ws_sum = wb_out.create_sheet("Tong hop", 0)
+    def _hdr_s(ws, row, values):
+        for ci,v in enumerate(values,1):
+            c=ws.cell(row,ci,v); c.fill=PatternFill("solid",fgColor=BLUE)
+            c.font=Font(name="Arial",bold=True,size=9,color=WHITE); c.alignment=Alignment(horizontal="center",vertical="center",wrap_text=True); c.border=GRID
+    def _rw_s(ws, row, values, fmt_cols=None, bold=False, fill=None):
+        for ci,v in enumerate(values,1):
+            c=ws.cell(row,ci,v); c.font=Font(name="Arial",size=9,bold=bold)
+            c.alignment=Alignment(horizontal="right" if (fmt_cols and ci in fmt_cols) else "left",vertical="center",wrap_text=True); c.border=GRID
+            if fmt_cols and ci in fmt_cols: c.number_format=NUM
+            if fill: c.fill=PatternFill("solid",fgColor=fill)
+    ws_sum.merge_cells("A1:J1")
+    ws_sum["A1"] = f"TONG HOP CUOI KY - TK 242 ({ENTITY})"
+    ws_sum["A1"].font = Font(name="Arial", size=13, bold=True, color=BLUE)
+    ws_sum.merge_cells("A2:J2")
+    ws_sum["A2"] = f"Xuat luc: {datetime.now():%d/%m/%Y %H:%M}"
+    ws_sum["A2"].font = Font(name="Arial", size=9, color="7F7F7F")
+    for c,w in {'A':5,'B':10,'C':6,'D':55,'E':18,'F':25}.items(): ws_sum.column_dimensions[c].width = w
+    row = 4
+    # ── Closing balance comparison ──
+    ws_sum.merge_cells(start_row=row,start_column=1,end_row=row,end_column=6)
+    ws_sum.cell(row,1,"CHENH LECH CUOI KY T6 - CHI TIET THEO THANG").fill = PatternFill("solid",fgColor="D6E4F0")
+    ws_sum.cell(row,1).font = Font(name="Arial",bold=True,size=10); row+=1
+    _hdr_s(ws_sum, row, ["Thang","TK","BCĐPS.cl","CCDC.cl","CP.cl","Lech"]); row+=1
+    for mc, ml in months:
+        cd = all_close.get(mc, {})
+        for tk in ('2421','2422'):
+            d = cd.get(tk, {})
+            l = d.get('lech', 0)
+            if l == 0: continue
+            _rw_s(ws_sum, row, [ml, tk, d.get('bcdps',0), d.get('ccdc',0), d.get('cp',0), l], fmt_cols={3,4,5,6})
+            row += 1
+    row += 1
+    # ── All items needing adjustment ──
+    ws_sum.merge_cells(start_row=row,start_column=1,end_row=row,end_column=6)
+    ws_sum.cell(row,1,"DANH SACH PHIEU CAN DIEU CHINH").fill = PatternFill("solid",fgColor="FCE4D6")
+    ws_sum.cell(row,1).font = Font(name="Arial",bold=True,size=10); row+=1
+    _hdr_s(ws_sum, row, ["STT","Thang","TK","Dien giai","Gia tri","Ghi chu"]); row+=1
+    stt = 0; grand_total = 0
+    for mc, ml in months:
+        for m in all_nf.get(mc, []):
+            stt += 1; grand_total += m['diff']
+            _rw_s(ws_sum, row, [stt, ml, m['tk'], str(m['ten'])[:80], m['diff'], m.get('note','')], fmt_cols={5}, fill="FCE4D6")
+            row += 1
+    _rw_s(ws_sum, row, ["","","","TONG CONG", _fmt(grand_total), ""], fmt_cols={5}, bold=True); row += 1
     out = os.path.join(BASE_DIR, f"z_DoiChieu_CCDC_{ENTITY}_{datetime.now():%Y%m%d_%H%M%S}.xlsx")
     wb_out.save(out)
     wb_out.close()
