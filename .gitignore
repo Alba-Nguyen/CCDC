@@ -1,5 +1,11 @@
-z_DoiChieu_CCDC_*.xlsx
+node_modules/
 __pycache__/
-_temp.db
-temp_doichieu.db
 *.pyc
+_temp_stage.xlsx
+*.inspect.ndjson
+_last_output.txt
+Check CCDC_*.xlsx
+Bảng kê chứng từ.xlsx
+Bảng tổng hợp chi phí chờ phân bổ.xlsx
+~$*.xlsx
+

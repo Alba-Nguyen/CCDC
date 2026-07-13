@@ -1,0 +1,18 @@
+HƯỚNG DẪN CHẠY TOOL CHECK CCDC
+
+1. Xuất hai báo cáo từ Bravo 8 và đặt đúng tên:
+   - Bảng kê chứng từ.xlsx
+   - Bảng tổng hợp chi phí chờ phân bổ.xlsx
+
+2. Với báo cáo Bảng tổng hợp chi phí chờ phân bổ, bắt buộc tích chọn:
+   “Tích hợp thêm dữ liệu CCDC”.
+
+3. Đóng hai file nguồn nếu đang mở trong Excel.
+
+4. Bấm đúp file Chay_Check_CCDC.cmd ở thư mục Alba - CCDC.
+
+5. Tool tự tạo và mở file:
+   Check CCDC_YYYYMMDD_HHMM.xlsx
+
+Tool đối chiếu riêng tài khoản 2421 và 2422 theo Mã. Nếu không tìm được mã,
+sheet Check sẽ ghi chú “Không tìm thấy Mã”.
